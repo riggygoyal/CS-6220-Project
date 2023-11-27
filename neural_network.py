@@ -6,22 +6,10 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 
-# Preprocessing and Sample Data here
 
-# Will be replaced by generated schedules?
-sample_data = {
-    'average_gpa': np.random.uniform(2.0, 4.0, 100),
-    'total_time_gap': np.random.randint(0, 180, 100),  # in minutes
-    # assuming 8am to 12pm start times
-    'start_time': np.random.randint(8, 12, 100),
-    # assuming 2pm to 8pm end times
-    'end_time': np.random.randint(14, 20, 100),
-    # hypothetical quality score
-    'quality_score': np.random.uniform(0, 10, 100)
-}
 
 # Create DataFrame
-df = pd.DataFrame(sample_data)
+df = pd.read_csv('schedules.csv').drop('Sections', axis=1)
 
 # Feature and Target Variables
 X = df.drop('quality_score', axis=1)
