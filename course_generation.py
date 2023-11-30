@@ -42,7 +42,9 @@ def generate_schedule(specialization, courses_taken, semesters_left):
                 specialization_course_pool += random.sample(list(requirements_set), k=choose)
 
         # Pick a random number of courses from the specialization course pool
-        specialization_courses = random.sample(specialization_course_pool, k=random.randrange(num_courses_nextsem+1))
+        # print(specialization)
+        # print(specialization_course_pool)
+        specialization_courses = random.sample(specialization_course_pool, k=random.randrange(min(num_courses_nextsem, len(specialization_course_pool)) + 1))
         specialization_courses = list(set(specialization_courses) & set(cs_courses.keys()))
 
         sections = {}
@@ -84,16 +86,23 @@ def generate_schedule(specialization, courses_taken, semesters_left):
                 total_time_gap += time_gap
             else:
                 times.append(time_intervals)
-                average_time_gap = total_time_gap / len(sections)
                 continue
             break
-        
+    
     # Calculate average GPA for schedule by calling API
     schedule_gpa = []
+    num_courses_no_gpa = 0
     for k in sections.keys():
-        prof_name = sections[k][1][1][0][4][0].replace(' (P)', '')
+        # Checks if professor(s) are actually assigned to the selected section
+        if len(sections[k][1][1][0][4]) > 0:
+            prof_name = sections[k][1][1][0][4][0].replace(' (P)', '')
+        else:
+            prof_name = ''
         url = 'https://c4citk6s9k.execute-api.us-east-1.amazonaws.com/test/data/course?courseID=' + k
-        gpa_raw = requests.get(url=url).json()['raw']
+        try:
+            gpa_raw = requests.get(url=url).json()['raw']
+        except:
+            print(k)
 
         course_gpa = []
         course_gpa_for_prof = []
@@ -106,50 +115,101 @@ def generate_schedule(specialization, courses_taken, semesters_left):
         average_gpa = 0.0
         if len(course_gpa_for_prof) > 0:
             average_gpa = np.mean(np.array(course_gpa_for_prof))
-        else:
+        elif len(course_gpa) > 0:
             average_gpa = np.mean(np.array(course_gpa))
+        else:
+            num_courses_no_gpa += 1
+
         if average_gpa > 0:
             schedule_gpa.append(average_gpa)
     
     average_schedule_gpa = np.mean(np.array(schedule_gpa))
 
-    # print("Average GPA: " + str(np.mean(np.array(schedule_gpa))))
-    # print(times)
-    # print('Earliest time: ' + earliest_time)
-    # print('Latest time: ' + latest_time)
-    # print('Average time gap: ' + str(average_time_gap))
+    return sections, average_schedule_gpa, num_courses_no_gpa, total_time_gap, earliest_time, latest_time
 
-    # print(sections)
+# Generate a number of (default=10) random schedules using parameters
+def specialization_schedules(specialization, courses_taken, semesters_left):
 
-    return sections, average_schedule_gpa, average_time_gap, earliest_time, latest_time
+    sections = []
+    average_schedule_gpas = []
+    num_courses_no_gpa = []
+    total_time_gaps = []
+    earliest_times_min = []
+    latest_times_min = []
+    earliest_times = []
+    latest_times = []
 
+    for _ in range(10):
+        sections_i, average_schedule_gpas_i, num_courses_no_gpa_i, total_time_gaps_i, earliest_times_i, latest_times_i = generate_schedule(specialization, courses_taken, semesters_left)
+        sections.append(sections_i)
+        average_schedule_gpas.append(average_schedule_gpas_i)
+        num_courses_no_gpa.append(num_courses_no_gpa_i)
+        total_time_gaps.append(total_time_gaps_i)
+        earliest_times.append(earliest_times_i)
+        latest_times.append(latest_times_i)
+        earliest_times_min.append(time_to_minutes(earliest_times_i))
+        latest_times_min.append(time_to_minutes(latest_times_i))
+    
+    return sections, average_schedule_gpas, num_courses_no_gpa, total_time_gaps, earliest_times_min, latest_times_min, earliest_times, latest_times
+
+# Generate all schedules and store features
 sections = []
 average_schedule_gpas = []
-average_time_gaps = []
+num_courses_no_gpa = []
+total_time_gaps = []
 earliest_times_min = []
 latest_times_min = []
 earliest_times = []
 latest_times = []
 
-specialization = 'HCC'
-courses_taken = set(['CSE 6451', 'CSE 6601'])
-semesters_left = 2
+specializations = ['CPR', 'CG', 'CS', 'HPC', 'HCC', 'HCI', 'II', 'ML', 'MS', 'SC', 'SOC', 'VA']
+courses_taken = [
+    set(['CS 6505', 'CS 6475']),
+    set(['CS 6476', 'CS 7496']),
+    set(['CS 6200', 'CS 6210']),
+    set(['CSE 6220', 'CS 6241']),
+    set(['CSE 6451', 'CSE 6601']),
+    set(['CSE 6456', 'CSE 6601', 'CS 7470', 'CS 6515', 'CS 6220', 'CS 8803']),
+    set([]),
+    set(['CS 7641', 'CS 6210']),
+    set(['CS 6220', 'CS 7641', 'ISYE 6644', 'MATH 6640', 'CSE 6140', 'CS 7632']),
+    set([]),
+    set([]),
+    set(['CS 6220', 'CS 6474'])
+]
+semesters_left = [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    3,
+    2,
+    1,
+    3,
+    3,
+    2
+]
 
-for i in range(10):
-    sections_i, average_schedule_gpas_i, average_time_gaps_i, earliest_times_i, latest_times_i = generate_schedule(specialization, courses_taken, semesters_left)
-    sections.append(sections_i)
-    average_schedule_gpas.append(average_schedule_gpas_i)
-    average_time_gaps.append(average_time_gaps_i)
-    earliest_times.append(earliest_times_i)
-    latest_times.append(latest_times_i)
-    earliest_times_min.append(time_to_minutes(earliest_times_i))
-    latest_times_min.append(time_to_minutes(latest_times_i))
+for i in range(len(specializations)):
+
+    specialization_section, specialization_average_schedule_gpas, specialization_courses_no_gpa, specialization_total_time_gaps, specialization_earliest_times_min, specialization_latest_times_min, specialization_earliest_times, specialization_latest_times = specialization_schedules(specializations[i], courses_taken[i], semesters_left[i])
+    sections += specialization_section
+    average_schedule_gpas += specialization_average_schedule_gpas
+    num_courses_no_gpa += specialization_courses_no_gpa
+    total_time_gaps += specialization_total_time_gaps
+    earliest_times_min += specialization_earliest_times_min
+    latest_times_min += specialization_latest_times_min
+    earliest_times += specialization_earliest_times
+    latest_times += specialization_latest_times
 
 
 schedules = {
     'Sections': sections, 
-    'Average GPA': average_schedule_gpas, 
-    'Average Time Gap': average_time_gaps,
+    'Average GPA': average_schedule_gpas,
+    'Courses w/ no GPA':  num_courses_no_gpa,
+    'Total Time Gap': total_time_gaps,
     'Earliest Time': earliest_times,
     'Latest Time': latest_times,
     'Earliest Time (Minutes)': earliest_times_min, 

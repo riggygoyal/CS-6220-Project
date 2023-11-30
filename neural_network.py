@@ -6,8 +6,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 
-
-
 # Create DataFrame
 df = pd.read_csv('schedules.csv').drop('Sections', axis=1)
 

@@ -4,14 +4,32 @@ with open('202402.json') as f:
     data = json.load(f)
     courses = data['courses']
 
-# Filters for grad CS/CSE courses
+
+# Filters for relevant grad CS/CSE courses and certain non-CS/CSE courses
+non_cs_courses = [
+    'INTA 6742',
+    'ISYE 6644',
+    'MATH 6640',
+    'MATH 6643',
+    'MATH 6644'
+    ]
+
+cs_courses_to_remove = [
+    'CS 7999',
+    'CSE 7999'
+]
+
 cs_courses = {k: v for k, v in courses.items() if 
-           k.startswith('CS 6') or
+           (k.startswith('CS 6') or
            k.startswith('CS 7') or 
-           k.startswith('CS 8') or
+           k == 'CS 8803' or
+           k == 'CS 8903' or
            k.startswith('CSE 6') or
            k.startswith('CSE 7') or
-           k.startswith('CSE 8')
+           k == 'CSE 8803' or
+           k == 'CSE 8903' or
+           k in non_cs_courses) and 
+           k not in cs_courses_to_remove
            }
 
 # Filters only for GT-Atlanta campus sections (no online, study abroad, etc.)
