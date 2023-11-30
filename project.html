@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Schedule Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>GT MSCS Course Schedule Generator</h1>
+        <form id="courseForm">
+            <label for="specialization">Specialization:</label>
+            <select id="specialization" name="specialization" required>
+                <option value="">Select a Specialization</option>
+                <option value="Computational Perception and Robotics">Computational Perception and Robotics</option>
+                <option value="Computer Graphics">Computer Graphics</option>
+                <option value="Computing Systems">Computing Systems</option>
+                <option value="High Performance Computing">High Performance Computing</option>
+                <option value="Human Centered Computing">Human Centered Computing</option>
+                <option value="Human-Computer Interaction">Human-Computer Interaction</option>
+                <option value="Interactive Intelligence">Interactive Intelligence</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="Modeling and Simulation">Modeling and Simulation</option>
+                <option value="Scientific Computing">Scientific Computing</option>
+                <option value="Social Computing">Social Computing</option>
+                <option value="Visual Analytics">Visual Analytics</option>
+            </select><br><br>
+
+
+            <label for="coursesTaken">Courses Taken (comma-separated):</label>
+            <input type="text" id="coursesTaken" name="coursesTaken" required><br><br>
+
+            <label for="semestersLeft">Semesters Left:</label>
+            <input type="number" id="semestersLeft" name="semestersLeft" required><br><br>
+
+            <label for="numCoursesRequired">Number of Courses Required:</label>
+            <input type="number" id="numCoursesRequired" name="numCoursesRequired" required><br><br>
+
+            <input type="submit" value="Generate Schedule">
+            
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
