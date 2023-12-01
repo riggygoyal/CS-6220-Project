@@ -73,10 +73,18 @@ def check_conflict(sections): #dummy function to be updated for time conflicts
 
 def get_gpas(sections):
     schedule_gpa = 0
+    count = 0
     for k in sections.keys():
-        prof_name = sections[k][1][1][0][4][0].replace(' (P)', '')
+        #print(sections[k])
+        if len(sections[k][1][1][0][4]) > 0:
+            prof_name = sections[k][1][1][0][4][0].replace(' (P)', '')
+        else:
+            prof_name = ''
         url = 'https://c4citk6s9k.execute-api.us-east-1.amazonaws.com/test/data/course?courseID=' + k
-        gpa_raw = requests.get(url=url).json()['raw']
+        try:
+            gpa_raw = requests.get(url=url).json()['raw']
+        except:
+            print(k)
 
         course_gpa = []
         course_gpa_for_prof = []
@@ -91,20 +99,23 @@ def get_gpas(sections):
             average_gpa = np.mean(np.array(course_gpa_for_prof))
         elif len(course_gpa) > 0:
             average_gpa = np.mean(np.array(course_gpa).mean())
-        print(k + ' ' + str(average_gpa))
+        #print(k + ' ' + str(average_gpa))
         if average_gpa > 0:
-            schedule_gpa += average_gpa/len(sections)
-    return schedule_gpa
+            schedule_gpa += average_gpa
+            count += 1
+    if count == 0:
+        return 0
+    return schedule_gpa/count
 
 def add_mutation(sections,course_requirements, courses_taken,specialization_course_pool):
     rand = random.randint(0,2)
     if (rand == 0):
         specialization_course = random.sample(specialization_course_pool, k=random.randrange(min(len(specialization_course_pool),1)))
         specialization_course = list(set(specialization_course) & set(cs_courses.keys()))
-        sections[specialization_course] = random.choice(list(cs_courses[specialization_course][1].items()))
+        sections[specialization_course[0]] = random.choice(list(cs_courses[specialization_course[0]][1].items()))
     else:
         elective = random.sample([k for k in cs_courses.keys() if k not in specialization_course_pool + list(courses_taken)], k=1)
-        sections[elective] = random.choice(list(cs_courses[elective][1].items()))
+        sections[elective[0]] = random.choice(list(cs_courses[elective[0]][1].items()))
     return sections
 
 #fitness func for ga
@@ -121,14 +132,65 @@ def fitness(sections, param_weights): #assuming that curr sched is of the form o
     print(total_weight)
     return total_weight
 
-#genetic algo TODO
-def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,population):
+#genetic algo vanilla
+def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,population,mutation_rate):
     subjects = []
     for i in range(population):
         subjects.append(generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool))
     seconds = time.time()
     maxfitness = 0
-    while ((time.time()-seconds < 44.5) and not (maxfitness == .7)): #limiting the running time, adding a threshold fitness for termination
+    while ((time.time()-seconds < 44.5) and not (maxfitness >= .7)): #limiting the running time, adding a threshold fitness for termination
+        new_population = []
+        fit = []
+        for i in subjects:
+            temp_maxfitness = fitness(i, [0.25,0.25,0.25,0.25])
+            fit.append(temp_maxfitness)
+            if (temp_maxfitness > maxfitness):
+                maxfitness = temp_maxfitness
+        subjects = []
+        fit = []
+        for i in range(len(subjects)):
+            parent1 = random.choices(subjects,weights=fit)[0]
+            parent2 = random.choices(subjects,weights=fit)[0]    #selecting 2 parents and performing crossover on them
+            c1 = random.randint(0,num_courses_nextsem)
+            child = {}
+            count = c1
+            for j in parent1.keys():
+                child[j] = parent1[j]
+                count -= 1
+                if (count == 0):
+                    break
+            count = num_courses_nextsem - c1
+            for j in parent2.keys():
+                child[j] = parent2[j]
+                count -= 1
+                if (count == 0):
+                    break
+            for j in list(child.keys()):
+                if (random.randint(1,100) <= mutation_rate):    #for mutation
+                    child.pop(j)
+                    child = add_mutation(child,course_requirements, courses_taken, specialization_course_pool)
+            temp_maxfitness = fitness(child,[0.25,0.25,0.25,0.25])  #to check fitness of child
+            if (temp_maxfitness > maxfitness):
+                maxfitness = temp_maxfitness
+            new_population.append(child)
+        subjects = new_population
+    fit = []
+    for i in subjects:
+        temp_maxfitness = fitness(i, [0.25,0.25,0.25,0.25])
+        fit.append(temp_maxfitness)
+        if (temp_maxfitness > maxfitness):
+            maxfitness = temp_maxfitness
+    return maxfitness, subjects
+
+#genetic algo elitism
+def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,population, elitism_factor):
+    subjects = []
+    for i in range(population):
+        subjects.append(generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool))
+    seconds = time.time()
+    maxfitness = 0
+    while ((time.time()-seconds < 44.5) and not (maxfitness >= .7)): #limiting the running time, adding a threshold fitness for termination
         new_population = []
         fit = []
         combined = []
@@ -140,33 +202,104 @@ def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem,sp
         for i in range(len(subjects)):
             combined.append([fit[i],subjects[i]])
         combined.sort(key = lambda x:x[0])
-        for i in range(len(subjects)-20,len(subjects)):
-            new_population.append(combined[i][1])    #to take the most fit 20% of individuals directly to the next generation		
-        combined = combined[len(subjects)-20:]   #to take the less fit individuals for generating the next generation
+        for i in range(len(subjects)-elitism_factor,len(subjects)):
+            new_population.append(combined[i][1])    #to take the most fit section of individuals directly to the next generation		
         subjects = []
         fit = []
-        for i in combined:
-            fit.append(i[0])
-            subjects.append(i[1])
         for i in range(len(subjects)):
             parent1 = random.choices(subjects,weights=fit)[0]
             parent2 = random.choices(subjects,weights=fit)[0]    #selecting 2 parents and performing crossover on them
-            c1 = random.randint(0,len(num_courses_nextsem))
+            c1 = random.randint(0,num_courses_nextsem)
             child = {}
-            for j in range(c1):
-                child[random.choice(list(parent1))] = parent1[random.choice(list(parent1))]
-            for j in range(len(num_courses_nextsem)-c1):
-                child[random.choice(list(parent2))] = parent2[random.choice(list(parent2))]
-            for j in child.keys():
+            count = c1
+            for j in parent1.keys():
+                child[j] = parent1[j]
+                count -= 1
+                if (count == 0):
+                    break
+            count = num_courses_nextsem - c1
+            for j in parent2.keys():
+                child[j] = parent2[j]
+                count -= 1
+                if (count == 0):
+                    break
+            for j in list(child.keys()):
                 if (random.randint(1,100) == 1):    #for mutation
                     child.pop(j)
-                    child = add_mutation(child,course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool)
+                    child = add_mutation(child,course_requirements, courses_taken, specialization_course_pool)
             temp_maxfitness = fitness(child,[0.25,0.25,0.25,0.25])  #to check fitness of child
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
             new_population.append(child)
         subjects = new_population
-    return maxfitness,best
+    return maxfitness, subjects
+
+#genetic algo 4 parents
+def genetic_algorithm_extra_parents(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,population):
+    subjects = []
+    for i in range(population):
+        subjects.append(generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool))
+    seconds = time.time()
+    maxfitness = 0
+    while ((time.time()-seconds < 44.5) and not (maxfitness >= .7)): #limiting the running time, adding a threshold fitness for termination
+        new_population = []
+        fit = []
+        for i in subjects:
+            temp_maxfitness = fitness(i, [0.25,0.25,0.25,0.25])
+            fit.append(temp_maxfitness)
+            if (temp_maxfitness > maxfitness):
+                maxfitness = temp_maxfitness
+        subjects = []
+        fit = []
+        for i in range(len(subjects)):
+            parent1 = random.choices(subjects,weights=fit)[0]
+            parent2 = random.choices(subjects,weights=fit)[0]
+            parent3 = random.choices(subjects,weights=fit)[0]
+            parent4 = random.choices(subjects,weights=fit)[0]    #selecting 4 parents and performing crossover on them
+            c1 = random.randint(0,num_courses_nextsem)
+            c2 = random.randint(0,c1)
+            c3 = random.randint(0,c2)
+            child = {}
+            count = c3
+            for j in parent1.keys():
+                child[j] = parent1[j]
+                count -= 1
+                if (count == 0):
+                    break
+            count = c2 - c3
+            for j in parent2.keys():
+                child[j] = parent2[j]
+                count -= 1
+                if (count == 0):
+                    break
+            count = c1 - c2
+            for j in parent3.keys():
+                child[j] = parent3[j]
+                count -= 1
+                if (count == 0):
+                    break
+            count = num_courses_nextsem - c1
+            for j in parent4.keys():
+                child[j] = parent4[j]
+                count -= 1
+                if (count == 0):
+                    break
+            for j in list(child.keys()):
+                if (random.randint(1,100) == 1):    #for mutation
+                    child.pop(j)
+                    child = add_mutation(child,course_requirements, courses_taken, specialization_course_pool)
+            temp_maxfitness = fitness(child,[0.25,0.25,0.25,0.25])  #to check fitness of child
+            if (temp_maxfitness > maxfitness):
+                maxfitness = temp_maxfitness
+            new_population.append(child)
+        subjects = new_population
+    fit = []
+    for i in subjects:
+        temp_maxfitness = fitness(i, [0.25,0.25,0.25,0.25])
+        fit.append(temp_maxfitness)
+        if (temp_maxfitness > maxfitness):
+            maxfitness = temp_maxfitness
+    return maxfitness, subjects
 
 #input
 specialization = 'HCC'
@@ -190,9 +323,8 @@ specialization_course_pool = []
 #sections = generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool)
 #fitness(sections, [0.25,0.25,0.25,0.25])
 
-genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,30)
+print(genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,30,3))
 
-print(sections)
 
 
 
