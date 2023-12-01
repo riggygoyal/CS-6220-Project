@@ -206,7 +206,7 @@ def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nexts
             new_population.append(combined[i][1])    #to take the most fit section of individuals directly to the next generation		
         subjects = []
         fit = []
-        for i in range(len(subjects)):
+        for i in range(len(subjects)-elitism_factor):
             parent1 = random.choices(subjects,weights=fit)[0]
             parent2 = random.choices(subjects,weights=fit)[0]    #selecting 2 parents and performing crossover on them
             c1 = random.randint(0,num_courses_nextsem)
