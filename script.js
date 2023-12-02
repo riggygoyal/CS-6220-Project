@@ -14,6 +14,10 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         numCoursesRequired: numCoursesRequired
     };
 
+    var messageBox = document.getElementById('messageBox');
+    messageBox.style.display = 'block'; // Makes the box visible
+    messageBox.innerHTML = 'Schedule would be shown here';
+
     // Sending a POST request to Flask
     fetch('http://127.0.0.1:5000/generate_schedule', {
         method: 'POST',
@@ -25,6 +29,10 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         console.log(data);
+        messageBox.innerHTML = 'Schedule would be shown here';
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        messageBox.innerHTML = 'Schedule would be shown here'; 
+    });
 });
