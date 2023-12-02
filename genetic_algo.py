@@ -85,6 +85,7 @@ def get_gpas(sections):
             gpa_raw = requests.get(url=url).json()['raw']
         except:
             print(k)
+            return 0
 
         course_gpa = []
         course_gpa_for_prof = []
@@ -108,14 +109,8 @@ def get_gpas(sections):
     return schedule_gpa/count
 
 def add_mutation(sections,course_requirements, courses_taken,specialization_course_pool):
-    rand = random.randint(0,2)
-    if (rand == 0):
-        specialization_course = random.sample(specialization_course_pool, k=random.randrange(min(len(specialization_course_pool),1)))
-        specialization_course = list(set(specialization_course) & set(cs_courses.keys()))
-        sections[specialization_course[0]] = random.choice(list(cs_courses[specialization_course[0]][1].items()))
-    else:
-        elective = random.sample([k for k in cs_courses.keys() if k not in specialization_course_pool + list(courses_taken)], k=1)
-        sections[elective[0]] = random.choice(list(cs_courses[elective[0]][1].items()))
+    elective = random.sample([k for k in cs_courses.keys() if k not in specialization_course_pool + list(courses_taken)],k=1)
+    sections[elective[0]] = random.choice(list(cs_courses[elective[0]][1].items()))
     return sections
 
 #fitness func for ga
@@ -147,8 +142,6 @@ def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem,sp
             fit.append(temp_maxfitness)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
-        subjects = []
-        fit = []
         for i in range(len(subjects)):
             parent1 = random.choices(subjects,weights=fit)[0]
             parent2 = random.choices(subjects,weights=fit)[0]    #selecting 2 parents and performing crossover on them
@@ -249,8 +242,6 @@ def genetic_algorithm_extra_parents(course_requirements, courses_taken, num_cour
             fit.append(temp_maxfitness)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
-        subjects = []
-        fit = []
         for i in range(len(subjects)):
             parent1 = random.choices(subjects,weights=fit)[0]
             parent2 = random.choices(subjects,weights=fit)[0]
@@ -323,7 +314,7 @@ specialization_course_pool = []
 #sections = generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool)
 #fitness(sections, [0.25,0.25,0.25,0.25])
 
-print(genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,30,3))
+print(genetic_algorithm_extra_parents(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool,30))
 
 
 
