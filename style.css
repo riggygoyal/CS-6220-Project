@@ -1,72 +1,85 @@
-/* style.css */
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f0f2f5;
+    font-family: 'Helvetica Neue', sans-serif;
+    background-color: 
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    background-image: url('gt.jfif');
     background-size: cover;
     background-position: center;
+    background-attachment: fixed;
 }
 
 .container {
     background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    width: 400px;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
+    width: 450px; /* Slightly wider */
     margin: 20px;
-    background: rgba(255, 255, 255, 0.8);
-    /* Semi-transparent white background */
+    background: rgba(255, 255, 255, 0.9); 
+}
+
+.message-box {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #f8f9fa; /* Light gray background */
+    color: #333; /* Dark text for visibility */
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-    color: #007bff;
+    color: #0056b3; 
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    font-size: 24px;
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
-    color: #333;
-    font-weight: bold;
+    margin-bottom: 8px;
+    color: #444; 
+    font-weight: 600; 
 }
 
 input[type="text"],
 input[type="number"],
 select {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 25px;
+    border: 1px solid #ccc; 
+    border-radius: 5px;
     box-sizing: border-box;
-    /* Ensures padding doesn't affect overall width */
+    background: #fff; 
 }
 
 input[type="submit"] {
-    background-color: #28a745;
+    background-color: #007bff; 
     color: white;
     border: none;
-    padding: 10px;
-    border-radius: 4px;
+    padding: 12px;
+    border-radius: 5px;
     cursor: pointer;
     width: 100%;
     box-sizing: border-box;
+    font-weight: bold;
 }
 
 input[type="submit"]:hover {
-    background-color: #218838;
+    background-color: #0069d9; 
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 600px) {
     .container {
-        width: 90%;
-        margin: 10px;
+        width: 95%;
+        margin: 15px;
+        padding: 30px;
     }
 }
