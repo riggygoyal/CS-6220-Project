@@ -46,7 +46,7 @@ def generate_sched(course_requirements, courses_taken, num_courses_nextsem, spec
     return sections
 
 
-def check_conflict(sections):  # dummy function to be updated for time conflicts
+def check_conflict(sections, caches):  # dummy function to be updated for time conflicts
     time_conflicts = False
     times = []
     total_time_gap = 0
@@ -133,12 +133,13 @@ def add_mutation(sections, course_requirements, courses_taken, cs_courses):
 # fitness func for ga
 
 
-def fitness(sections, param_weights):  # assuming that curr sched is of the form of an array of arrays with the course number, gpa, time slot in that order. timetable is an array of arrays of each day which is filled if a class is present. param weights includes the user defined weights of the factors, they should sum to 1.
+def fitness(sections, param_weights, caches):  # assuming that curr sched is of the form of an array of arrays with the course number, gpa, time slot in that order. timetable is an array of arrays of each day which is filled if a class is present. param weights includes the user defined weights of the factors, they should sum to 1.
     total_weight = 0
     gpas = get_gpas(sections)
     # assuming that param_weights has gpa weight first
     total_weight += param_weights[0]*gpas/4
-    time_conflict, total_gap, earliest, latest = check_conflict(sections)
+    time_conflict, total_gap, earliest, latest = check_conflict(
+        sections, caches)
     if time_conflict:
         return 0
     # taking maximum possible gaps as 53 periods of 15 mins over 5 days, second weight parameter is for gaps
@@ -149,12 +150,13 @@ def fitness(sections, param_weights):  # assuming that curr sched is of the form
     return total_weight
 
 
-def fitness_nn(sections, model):
+def fitness_nn(sections, model, caches):
     data_f = []
     data = []
     data.append(get_gpas(sections)[0])  # Average GPA
     data.append(get_gpas(sections)[1])  # Courses w/ no GPA
-    time_conflict, total_gap, earliest, latest = check_conflict(sections)
+    time_conflict, total_gap, earliest, latest = check_conflict(
+        sections, caches)
     data.append(total_gap)  # Total Time Gap
     data.append(time_to_minutes(earliest))  # Earliest Time (Minutes)
     data.append(time_to_minutes(latest))  # Latest Time (Minutes)
@@ -167,7 +169,7 @@ def fitness_nn(sections, model):
 # genetic algo vanilla
 
 
-def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem, specialization, cs_courses, population, mutation_rate):
+def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem, specialization, cs_courses, caches, population, mutation_rate):
     subjects = []
     for i in range(population):
         subjects.append(generate_sched(course_requirements, courses_taken,
@@ -179,7 +181,7 @@ def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem, s
         new_population = []
         fit = []
         for i in subjects:
-            temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25])
+            temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25], caches)
             fit.append(temp_maxfitness)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
@@ -207,14 +209,14 @@ def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem, s
                     child = add_mutation(
                         child, course_requirements, courses_taken, cs_courses)
             # to check fitness of child
-            temp_maxfitness = fitness(child, [0.25, 0.25, 0.25, 0.25])
+            temp_maxfitness = fitness(child, [0.25, 0.25, 0.25, 0.25], caches)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
             new_population.append(child)
         subjects = new_population
     fit = []
     for i in subjects:
-        temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25])
+        temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25], caches)
         fit.append(temp_maxfitness)
         if (temp_maxfitness > maxfitness):
             maxfitness = temp_maxfitness
@@ -223,7 +225,7 @@ def genetic_algorithm(course_requirements, courses_taken, num_courses_nextsem, s
 # genetic algo elitism
 
 
-def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nextsem, specialization, cs_courses, population, elitism_factor):
+def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nextsem, specialization, cs_courses, caches, population, elitism_factor):
     subjects = []
     for i in range(population):
         subjects.append(generate_sched(course_requirements, courses_taken,
@@ -236,7 +238,7 @@ def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nexts
         fit = []
         combined = []
         for i in subjects:
-            temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25])
+            temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25], caches)
             fit.append(temp_maxfitness)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
@@ -270,7 +272,7 @@ def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nexts
                     child = add_mutation(
                         child, course_requirements, courses_taken, cs_courses)
             # to check fitness of child
-            temp_maxfitness = fitness(child, [0.25, 0.25, 0.25, 0.25])
+            temp_maxfitness = fitness(child, [0.25, 0.25, 0.25, 0.25], caches)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
             new_population.append(child)
@@ -280,7 +282,7 @@ def genetic_algorithm_elit(course_requirements, courses_taken, num_courses_nexts
 # genetic algo 4 parents
 
 
-def genetic_algorithm_extra_parents(course_requirements, courses_taken, num_courses_nextsem, specialization, cs_courses, population):
+def genetic_algorithm_extra_parents(course_requirements, courses_taken, num_courses_nextsem, specialization, cs_courses, caches, population):
     subjects = []
     for i in range(population):
         subjects.append(generate_sched(course_requirements, courses_taken,
@@ -292,7 +294,7 @@ def genetic_algorithm_extra_parents(course_requirements, courses_taken, num_cour
         new_population = []
         fit = []
         for i in subjects:
-            temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25])
+            temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25], caches)
             fit.append(temp_maxfitness)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
@@ -336,41 +338,45 @@ def genetic_algorithm_extra_parents(course_requirements, courses_taken, num_cour
                     child = add_mutation(
                         child, course_requirements, courses_taken, cs_courses)
             # to check fitness of child
-            temp_maxfitness = fitness(child, [0.25, 0.25, 0.25, 0.25])
+            temp_maxfitness = fitness(child, [0.25, 0.25, 0.25, 0.25], caches)
             if (temp_maxfitness > maxfitness):
                 maxfitness = temp_maxfitness
             new_population.append(child)
         subjects = new_population
     fit = []
     for i in subjects:
-        temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25])
+        temp_maxfitness = fitness(i, [0.25, 0.25, 0.25, 0.25], caches)
         fit.append(temp_maxfitness)
         if (temp_maxfitness > maxfitness):
             maxfitness = temp_maxfitness
     return maxfitness, subjects
 
 
-# input
-specialization = 'HCC'
-courses_taken = set(['cse 6451', 'cse 6601'])
-semesters_left = 2
-num_courses_required = 10
+def main():
+    # input
+    specialization = 'HCC'
+    courses_taken = set(['cse 6451', 'cse 6601'])
+    semesters_left = 2
+    num_courses_required = 10
 
-with open('course_requirements.json') as f:
-    course_requirements = json.load(f)
+    with open('course_requirements.json') as f:
+        course_requirements = json.load(f)
 
-with open('cs_courses.json') as f:
-    data = json.load(f)
-    cs_courses = data['courses']
-    caches = data['caches']
+    with open('cs_courses.json') as f:
+        data = json.load(f)
+        cs_courses = data['courses']
+        caches = data['caches']
 
-num_courses_remaining = num_courses_required - len(courses_taken)
-num_courses_nextsem = num_courses_remaining // semesters_left
+    num_courses_remaining = num_courses_required - len(courses_taken)
+    num_courses_nextsem = num_courses_remaining // semesters_left
 
-specialization_course_pool = []
+    specialization_course_pool = []
 
-# sections = generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool)
-# fitness(sections, [0.25,0.25,0.25,0.25])
+    # sections = generate_sched(course_requirements, courses_taken, num_courses_nextsem,specialization_course_pool)
+    # fitness(sections, [0.25,0.25,0.25,0.25])
 
-print(genetic_algorithm(course_requirements, courses_taken,
-      num_courses_nextsem, specialization, cs_courses, 30, 3))
+    print(genetic_algorithm(course_requirements, courses_taken,
+          num_courses_nextsem, specialization, cs_courses, caches, 30, 3))
+
+
+main()
