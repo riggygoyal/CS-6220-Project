@@ -51,9 +51,11 @@ def generate_schedule():
     num_courses_remaining = int(numCoursesRequired) - len(coursesTaken)
     num_courses_nextsem = num_courses_remaining // int(semestersLeft)
 
-    """if (specialization_abbreviated != ""):
+    if (specialization_abbreviated != ""):
         fitness, subjects = genetic_algorithm(course_requirements, set(coursesTaken),
-                                                            num_courses_nextsem, specialization_abbreviated, cs_courses, 30, 3)"""
+                                              num_courses_nextsem, specialization_abbreviated, cs_courses, caches, 30, 3)
+
+    print(subjects)
 
     schedule_data = {
         "Best Schedule on given input": [
