@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
-from genetic_algo import genetic_algorithm_extra_parents
+from genetic_algo_nn import genetic_algorithm
 
 app = Flask(__name__)
 CORS(app)
@@ -44,18 +44,28 @@ def generate_schedule():
         "Scientific Computing": "SC",
         "Social Computing": "SOC",
         "Visual Analytics": "VA",
-
     }
 
     specialization_abbreviated = specialization_abbr[specialization]
 
-    num_courses_remaining = int(numCoursesRequired) - len(int(coursesTaken))
-    num_courses_nextsem = num_courses_remaining // semestersLeft
+    num_courses_remaining = int(numCoursesRequired) - len(coursesTaken)
+    num_courses_nextsem = num_courses_remaining // int(semestersLeft)
 
-    if (specialization_abbreviated != ""):
-        fitness, subjects = genetic_algorithm_extra_parents(course_requirements, coursesTaken,
-                                                            num_courses_nextsem, specialization_abbreviated, cs_courses, 30, 3)
-        print(subjects)
+    """if (specialization_abbreviated != ""):
+        fitness, subjects = genetic_algorithm(course_requirements, set(coursesTaken),
+                                                            num_courses_nextsem, specialization_abbreviated, cs_courses, 30, 3)"""
+
+    schedule_data = {
+        "Best Schedule on given input": [
+            {"CSE 6742": ["A", "32416", ["5", "W"],
+                          "Cherry Emerson 320", 25, "Mariel Borowitz (P)"]},
+            {"CS 6999": ["K13", "32647", ["2", "TBA"], 1, "Neha Kumar (P)"]},
+            {"CS 6457": ["A", ["24107"], ["3", "MW"]]},
+            {"CS 7455": ["A", ["29357", ["1"]]]}
+        ]
+    }
+
+    return jsonify(schedule_data)
 
 
 if __name__ == '__main__':

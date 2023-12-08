@@ -83,3 +83,25 @@ input[type="submit"]:hover {
         padding: 30px;
     }
 }
+
+.schedules-display {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    /* Light grey background for visibility */
+    border: 1px solid #ddd;
+    /* Light border for the display area */
+    border-radius: 5px;
+    overflow: auto;
+    /* In case of overflow */
+}
+
+.schedules-display h3 {
+    color: #007bff;
+    /* Styling for schedule headers */
+}
+
+.schedules-display p {
+    font-family: monospace;
+    /* Monospace font for schedule details */
+}

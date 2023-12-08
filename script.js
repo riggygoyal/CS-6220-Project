@@ -14,9 +14,6 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         numCoursesRequired: numCoursesRequired
     };
 
-    var messageBox = document.getElementById('messageBox');
-    messageBox.style.display = 'block'; // Makes the box visible
-    messageBox.innerHTML = 'Schedule would be shown here';
 
     // Sending a POST request to Flask
     fetch('http://127.0.0.1:5000/generate_schedule', {
@@ -28,11 +25,23 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log(data);
-        messageBox.innerHTML = 'Schedule would be shown here';
+        if(data["Best Schedule on given input"]) {
+            displaySchedules(data["Best Schedule on given input"]);
+        } else {
+            console.error('Error in getting schedules:', data.error);
+    }
     })
     .catch(error => {
         console.error('Error:', error);
         messageBox.innerHTML = 'Schedule would be shown here'; 
     });
+
+    function displaySchedules(schedules) {
+        const displayElement = document.getElementById('schedulesDisplay');
+        let schedulesHTML = '';
+        schedules.forEach((schedule, index) => {
+            schedulesHTML += `<div><h3>Class ${index + 1}</h3><p>${JSON.stringify(schedule)}</p></div>`;
+        });
+        displayElement.innerHTML = schedulesHTML;
+    }
 });

@@ -377,6 +377,3 @@ def main():
 
     print(genetic_algorithm(course_requirements, courses_taken,
           num_courses_nextsem, specialization, cs_courses, caches, 30, 3))
-
-
-main()
