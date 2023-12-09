@@ -8,6 +8,12 @@ Before you begin, ensure you have met the following requirements:
 - You have installed the latest version of `Python`
 - You have a `<Windows/Linux/Mac>` machine.
 
+## Installation
+To set up your local development environment, please follow the steps below:
+
+1. **Clone the Repository**
+2. Navigate to the project directory and run this command "pip install -r requirements.txt"
+
 
 ## Running the Application
 
