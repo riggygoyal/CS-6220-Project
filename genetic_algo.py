@@ -50,7 +50,7 @@ def check_conflict(sections, caches):  # dummy function to be updated for time c
     time_conflicts = False
     times = []
     total_time_gap = 0
-    earliest_time = '23:45'
+    earliest_time = '2345'
     latest_time = '0'
     for day in ['M', 'T', 'W', 'R', 'F']:
         sections_on_current_day = []

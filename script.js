@@ -26,6 +26,7 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if(data["Best Schedule on given input"]) {
+            console.log(data["Best Schedule on given input"])
             displaySchedules(data["Best Schedule on given input"]);
         } else {
             console.error('Error in getting schedules:', data.error);
@@ -33,14 +34,13 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     })
     .catch(error => {
         console.error('Error:', error);
-        messageBox.innerHTML = 'Schedule would be shown here'; 
     });
 
     function displaySchedules(schedules) {
         const displayElement = document.getElementById('schedulesDisplay');
         let schedulesHTML = '';
-        schedules.forEach((schedule, index) => {
-            schedulesHTML += `<div><h3>Class ${index + 1}</h3><p>${JSON.stringify(schedule)}</p></div>`;
+        Object.entries(schedules).forEach(([courseCode, schedule], index) => {
+            schedulesHTML += `<div><h3>Class ${index + 1}: ${courseCode}</h3><p>${JSON.stringify(schedule)}</p></div>`;
         });
         displayElement.innerHTML = schedulesHTML;
     }

@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
-from genetic_algo_nn import genetic_algorithm
+from genetic_algo import genetic_algorithm, fitness
 
 app = Flask(__name__)
 CORS(app)
@@ -52,19 +52,21 @@ def generate_schedule():
     num_courses_nextsem = num_courses_remaining // int(semestersLeft)
 
     if (specialization_abbreviated != ""):
-        fitness, subjects = genetic_algorithm(course_requirements, set(coursesTaken),
-                                              num_courses_nextsem, specialization_abbreviated, cs_courses, caches, 30, 3)
+        fitness_a, subjects = genetic_algorithm(course_requirements, set(coursesTaken),
+                                                num_courses_nextsem, specialization_abbreviated, cs_courses, caches, 15, 3)
 
-    print(subjects)
+    best_schedule = subjects[0]
+
+    max_fitness = 0
+    for schedule in subjects:
+        curr_fitness = fitness(schedule, [0.25, 0.25, 0.25, 0.25], caches)
+        if curr_fitness > max_fitness:
+            best_schedule = schedule
+            max_fitness = curr_fitness
+    print(best_schedule)
 
     schedule_data = {
-        "Best Schedule on given input": [
-            {"CSE 6742": ["A", "32416", ["5", "W"],
-                          "Cherry Emerson 320", 25, "Mariel Borowitz (P)"]},
-            {"CS 6999": ["K13", "32647", ["2", "TBA"], 1, "Neha Kumar (P)"]},
-            {"CS 6457": ["A", ["24107"], ["3", "MW"]]},
-            {"CS 7455": ["A", ["29357", ["1"]]]}
-        ]
+        "Best Schedule on given input": best_schedule
     }
 
     return jsonify(schedule_data)
