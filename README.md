@@ -5,7 +5,7 @@ A web application that allows a user to enter various inputs, then generates a s
 
 ## Prerequisites
 Before you begin, ensure you have met the following requirements:
-- You have installed the latest version of `Python`
+- **Python**: You need to have Python version 3.10.11 or higher installed on your machine. To check your Python version, you can run `python --version` in your terminal (or `python3 --version` on some systems). If you don't have Python installed, you can download it from [python.org](https://www.python.org/downloads/).
 - You have a `<Windows/Linux/Mac>` machine.
 
 ## Installation
